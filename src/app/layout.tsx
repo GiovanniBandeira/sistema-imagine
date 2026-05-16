@@ -1,5 +1,6 @@
 import "./globals.css";
 
+import ClientRoot from "@/components/layout/ClientRoot";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
@@ -18,7 +19,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#050816] text-white antialiased">
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <ClientRoot>{children}</ClientRoot>
           </AuthProvider>
         </ThemeProvider>
       </body>

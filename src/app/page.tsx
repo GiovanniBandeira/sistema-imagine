@@ -1,66 +1,68 @@
-'use client';
-import React from 'react';
-import Link from 'next/link';
-import { Cuboid, EyeOff } from 'lucide-react';
+"use client";
+
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { EyeOff, LogIn } from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("admin@imagine3d.com");
+  const [password, setPassword] = useState("imagine-admin");
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    login(email, password);
+    router.push("/dashboard");
+  }
+
   return (
-    <div suppressHydrationWarning className="min-h-screen bg-[#0f1015] flex flex-col items-center justify-center p-4 font-sans">
-      
-      <div className="w-full max-w-[400px] bg-[#161720] border border-[#272733] rounded-2xl p-8 flex flex-col shadow-2xl relative">
-        
-        {/* Logo */}
-        <div className="flex items-center justify-center mb-8 mt-2">
-          <img src="/Images/LogoVerde3.0.svg" alt="Imagine 3D ERP Logo" className="h-12 object-contain" />
+    <main className="flex min-h-dvh items-center justify-center bg-[#0f1015] p-4">
+      <section className="w-full max-w-[410px] rounded-xl border border-[#272733] bg-[#161720] p-8 shadow-2xl">
+        <div className="mb-8 flex justify-center">
+          <img src="/Images/LogoVerde3.0.svg" alt="Imagine 3D ERP" className="h-12 object-contain" />
         </div>
 
-        {/* Welcome Text */}
-        <div className="text-center mb-8">
-          <h2 className="text-xl font-semibold text-white mb-2">Bem-vindo de volta!</h2>
-          <p className="text-sm text-gray-400">Faça login para continuar</p>
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-semibold text-white">Bem-vindo de volta</h1>
+          <p className="mt-2 text-sm text-gray-400">Entre para continuar no ERP Imagine Tools.</p>
         </div>
 
-        {/* Form */}
-        <form className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-gray-300">E-mail</label>
-            <input 
-              type="email" 
-              placeholder="seu@email.com" 
-              className="w-full bg-[#0f1015] border border-[#272733] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition-colors"
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-gray-300">E-mail</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-lg border border-[#272733] bg-[#0f1015] px-4 py-3 text-sm text-white outline-none transition-colors focus:border-brand"
             />
-          </div>
+          </label>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-gray-300">Senha</label>
-            <div className="relative">
-              <input 
-                type="password" 
-                defaultValue="secretpassword" 
-                className="w-full bg-[#0f1015] border border-[#272733] rounded-lg pl-4 pr-10 py-3 text-sm text-white focus:outline-none focus:border-brand transition-colors"
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-gray-300">Senha</span>
+            <span className="relative">
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="w-full rounded-lg border border-[#272733] bg-[#0f1015] py-3 pl-4 pr-10 text-sm text-white outline-none transition-colors focus:border-brand"
               />
-              <EyeOff size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer hover:text-gray-300 transition-colors" />
-            </div>
-          </div>
+              <EyeOff size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500" />
+            </span>
+          </label>
 
-          <div className="flex items-center justify-between mt-1">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4 rounded border-gray-600 bg-[#0f1015] accent-brand cursor-pointer" />
-              <span className="text-xs text-gray-400">Lembrar de mim</span>
-            </label>
-            <a href="#" className="text-xs text-brand hover:text-brandHover transition-colors">Esqueci minha senha</a>
-          </div>
-
-          <Link href="/dashboard" className="mt-2 w-full bg-brand hover:bg-brandHover text-[#0f1015] font-semibold py-3 rounded-lg text-sm transition-colors text-center block">
+          <button className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-brand py-3 text-sm font-semibold text-[#0f1015] transition-colors hover:bg-brandHover">
+            <LogIn size={16} />
             Entrar
-          </Link>
+          </button>
         </form>
 
-        <div className="mt-12 text-center">
-          <p className="text-[10px] text-gray-600">© 2026 IMAGINE 3D ERP. Todos os direitos reservados.</p>
-        </div>
-      </div>
-      
-    </div>
+        <p className="mt-10 text-center text-[11px] text-gray-600">
+          2026 IMAGINE 3D ERP. Todos os direitos reservados.
+        </p>
+      </section>
+    </main>
   );
 }

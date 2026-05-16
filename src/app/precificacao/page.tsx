@@ -1,136 +1,153 @@
-'use client';
-import React from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { ChevronDown, Tag } from 'lucide-react';
+"use client";
+
+import { useMemo, useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Button from "@/components/ui/Button";
+import StatusBadge from "@/components/ui/StatusBadge";
+import { useErpStore } from "@/stores/useErpStore";
+import { Calculator, FileText } from "lucide-react";
+
+const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function PrecificacaoPage() {
+  const addQuote = useErpStore((state) => state.addQuote);
+  const [projectName, setProjectName] = useState("Personagem colecionável");
+  const [clientName, setClientName] = useState("Cliente balcão");
+  const [seller, setSeller] = useState("Admin Master");
+  const [weight, setWeight] = useState(165);
+  const [materialCostKg, setMaterialCostKg] = useState(96);
+  const [printHours, setPrintHours] = useState(8.5);
+  const [machineHourCost, setMachineHourCost] = useState(7.5);
+  const [finishingCost, setFinishingCost] = useState(25);
+  const [paintingCost, setPaintingCost] = useState(35);
+  const [packagingCost, setPackagingCost] = useState(8);
+  const [wastePct, setWastePct] = useState(8);
+  const [commissionPct, setCommissionPct] = useState(7);
+  const [investmentPct, setInvestmentPct] = useState(5);
+  const [markup, setMarkup] = useState(2.8);
+  const [saved, setSaved] = useState(false);
+
+  const result = useMemo(() => {
+    const materialCost = (weight / 1000) * materialCostKg;
+    const machineCost = printHours * machineHourCost;
+    const directCost = materialCost + machineCost + finishingCost + paintingCost + packagingCost;
+    const waste = directCost * (wastePct / 100);
+    const totalCost = directCost + waste;
+    const sellingPrice = Math.ceil(totalCost * markup);
+    const commission = sellingPrice * (commissionPct / 100);
+    const investmentReserve = sellingPrice * (investmentPct / 100);
+    const profit = sellingPrice - totalCost - commission - investmentReserve;
+    const resellerPrice = Math.ceil(sellingPrice * 0.82);
+
+    return { materialCost, machineCost, directCost, waste, totalCost, sellingPrice, commission, investmentReserve, profit, resellerPrice };
+  }, [commissionPct, finishingCost, investmentPct, machineHourCost, markup, materialCostKg, packagingCost, paintingCost, printHours, wastePct, weight]);
+
+  function saveQuote() {
+    addQuote({
+      clientName,
+      seller,
+      value: result.sellingPrice,
+      status: "Rascunho",
+    });
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2000);
+  }
+
   return (
     <DashboardLayout>
-      <div className="flex gap-8 max-w-5xl">
-        
-        {/* Left Column: Parâmetros */}
-        <div className="flex-1 flex flex-col gap-6">
-          <h3 className="text-sm font-semibold text-white">Parâmetros do Projeto</h3>
-          
-          <div className="flex flex-col gap-4 bg-card border border-border rounded-xl p-6">
-            
-            {/* Input Rows */}
-            <div className="grid grid-cols-5 items-center gap-4">
-              <label className="col-span-2 text-sm text-gray-400">Tecnologia</label>
-              <div className="col-span-3 relative">
-                <select className="w-full bg-[#0f111a] border border-border rounded-lg pl-4 pr-10 py-2.5 text-sm text-gray-300 appearance-none focus:outline-none focus:border-brand">
-                  <option>Resina LCD</option>
-                  <option>FDM</option>
-                </select>
-                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-              </div>
+      <div className="grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <section className="rounded-xl border border-white/10 bg-card p-6">
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold text-white">Precificação</h2>
+              <p className="mt-1 text-sm text-gray-400">Cálculo local instantâneo para validar preço, margem e comissão.</p>
             </div>
-
-            <div className="grid grid-cols-5 items-center gap-4">
-              <label className="col-span-2 text-sm text-gray-400">Tipo de Resina</label>
-              <div className="col-span-3 relative">
-                <select className="w-full bg-[#0f111a] border border-border rounded-lg pl-4 pr-10 py-2.5 text-sm text-gray-300 appearance-none focus:outline-none focus:border-brand">
-                  <option>Padrão</option>
-                  <option>Tough</option>
-                  <option>Lavável em água</option>
-                </select>
-                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-5 items-center gap-4">
-              <label className="col-span-2 text-sm text-gray-400">Altura (cm)</label>
-              <div className="col-span-3">
-                <input type="text" defaultValue="20" className="w-full bg-[#0f111a] border border-border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-5 items-center gap-4">
-              <label className="col-span-2 text-sm text-gray-400">Volume (cm³)</label>
-              <div className="col-span-3">
-                <input type="text" defaultValue="150" className="w-full bg-[#0f111a] border border-border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-5 items-center gap-4">
-              <label className="col-span-2 text-sm text-gray-400">Peso (g)</label>
-              <div className="col-span-3">
-                <input type="text" defaultValue="165" className="w-full bg-[#0f111a] border border-border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-5 items-center gap-4">
-              <label className="col-span-2 text-sm text-gray-400">Tempo de Impressão</label>
-              <div className="col-span-3">
-                <input type="text" defaultValue="8h 30m" className="w-full bg-[#0f111a] border border-border rounded-lg px-4 py-2.5 text-sm text-gray-400 focus:outline-none focus:border-brand" />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 mt-2">
-              <label className="text-sm text-gray-400">Acabamentos</label>
-              <div className="flex gap-3">
-                {['Lixamento', 'Pintura', 'Montagem'].map(acabamento => (
-                  <div key={acabamento} className="relative flex-1">
-                    <select className="w-full bg-[#0f111a] border border-border rounded-lg pl-3 pr-8 py-2 text-xs text-gray-300 appearance-none focus:outline-none focus:border-brand">
-                      <option>{acabamento}</option>
-                    </select>
-                    <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button className="w-full mt-4 bg-brand hover:bg-brandHover text-[#0f1015] font-semibold py-3 rounded-lg text-sm transition-colors">
-              Calcular Preço
-            </button>
+            <StatusBadge tone="green">Sem requisição</StatusBadge>
           </div>
-        </div>
 
-        {/* Right Column: Resumo */}
-        <div className="w-96 flex flex-col gap-6">
-          <h3 className="text-sm font-semibold text-white">Resumo do Cálculo</h3>
-          
-          <div className="flex flex-col bg-card border border-border rounded-xl p-6">
-            <div className="flex flex-col gap-4 mb-6">
-              {[
-                { label: 'Custo de Material', value: 'R$ 12,45' },
-                { label: 'Custo de Impressão', value: 'R$ 18,70' },
-                { label: 'Custo de Acabamento', value: 'R$ 25,00' },
-                { label: 'Custo Operacional', value: 'R$ 15,30' },
-              ].map((item, i) => (
-                <div key={i} className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400">{item.label}</span>
-                  <span className="text-gray-200">{item.value}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t border-border/50 pt-4 pb-4 flex flex-col gap-4">
-               <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-300 font-medium">Custo Total</span>
-                  <span className="text-gray-200">R$ 71,45</span>
-               </div>
-               <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400">Markup Aplicado</span>
-                  <span className="text-gray-400">2.80x</span>
-               </div>
-            </div>
-
-            <div className="border-t border-border pt-6 pb-2 flex flex-col">
-               <div className="flex justify-between items-end mb-4">
-                 <span className="text-sm font-medium text-white mb-1">Preço de Venda</span>
-                 <span className="text-3xl font-bold text-brand">R$ 199,00</span>
-               </div>
-               <div className="flex items-center gap-2 text-xs text-green-500 font-medium mt-1">
-                 <Tag size={12} />
-                 <span>Margem de lucro: 63.7%</span>
-               </div>
-            </div>
-
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Input label="Projeto" value={projectName} onChange={setProjectName} />
+            <Input label="Cliente" value={clientName} onChange={setClientName} />
+            <Input label="Vendedor" value={seller} onChange={setSeller} />
+            <NumberInput label="Peso impresso (g)" value={weight} onChange={setWeight} />
+            <NumberInput label="Custo material / kg" value={materialCostKg} onChange={setMaterialCostKg} />
+            <NumberInput label="Tempo de impressão (h)" value={printHours} onChange={setPrintHours} step="0.1" />
+            <NumberInput label="Custo máquina / h" value={machineHourCost} onChange={setMachineHourCost} step="0.1" />
+            <NumberInput label="Acabamento" value={finishingCost} onChange={setFinishingCost} />
+            <NumberInput label="Pintura" value={paintingCost} onChange={setPaintingCost} />
+            <NumberInput label="Embalagem" value={packagingCost} onChange={setPackagingCost} />
+            <NumberInput label="Desperdício (%)" value={wastePct} onChange={setWastePct} />
+            <NumberInput label="Comissão (%)" value={commissionPct} onChange={setCommissionPct} />
+            <NumberInput label="Reserva investimento (%)" value={investmentPct} onChange={setInvestmentPct} />
+            <NumberInput label="Markup" value={markup} onChange={setMarkup} step="0.1" />
           </div>
-        </div>
+        </section>
 
+        <aside className="flex flex-col gap-6">
+          <section className="rounded-xl border border-white/10 bg-card p-6">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Calculator size={20} />
+              </div>
+              <div>
+                <h3 className="font-semibold text-white">Resumo do cálculo</h3>
+                <p className="text-xs text-gray-500">{projectName}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <Row label="Material" value={currency.format(result.materialCost)} />
+              <Row label="Máquina" value={currency.format(result.machineCost)} />
+              <Row label="Acabamento + pintura" value={currency.format(finishingCost + paintingCost)} />
+              <Row label="Embalagem" value={currency.format(packagingCost)} />
+              <Row label="Desperdício" value={currency.format(result.waste)} />
+              <Row label="Custo total" value={currency.format(result.totalCost)} strong />
+              <Row label="Comissão" value={currency.format(result.commission)} />
+              <Row label="Reserva" value={currency.format(result.investmentReserve)} />
+            </div>
+
+            <div className="mt-6 rounded-xl border border-brand/20 bg-brand/10 p-5">
+              <span className="text-sm text-brand">Preço cliente final</span>
+              <strong className="mt-2 block text-4xl text-white">{currency.format(result.sellingPrice)}</strong>
+              <p className="mt-2 text-sm text-gray-400">Revendedor: {currency.format(result.resellerPrice)}</p>
+              <p className="mt-1 text-sm text-gray-400">Lucro líquido: {currency.format(result.profit)}</p>
+            </div>
+
+            <Button onClick={saveQuote} className="mt-5 w-full">
+              <FileText size={16} className="mr-2" />
+              Gerar orçamento
+            </Button>
+            {saved && <p className="mt-3 text-center text-sm text-brand">Orçamento criado em rascunho.</p>}
+          </section>
+        </aside>
       </div>
     </DashboardLayout>
+  );
+}
+
+function Input({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm text-gray-400">{label}</span>
+      <input value={value} onChange={(event) => onChange(event.target.value)} className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" />
+    </label>
+  );
+}
+
+function NumberInput({ label, value, onChange, step = "1" }: { label: string; value: number; onChange: (value: number) => void; step?: string }) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm text-gray-400">{label}</span>
+      <input type="number" min="0" step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" />
+    </label>
+  );
+}
+
+function Row({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-3">
+      <span className="text-gray-400">{label}</span>
+      <span className={strong ? "font-semibold text-white" : "text-gray-200"}>{value}</span>
+    </div>
   );
 }

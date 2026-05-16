@@ -1,225 +1,161 @@
-'use client';
-import React, { useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Settings, User, Bell, Shield, Database, Eye, EyeOff, Save, Trash2 } from 'lucide-react';
+"use client";
+
+import { useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Button from "@/components/ui/Button";
+import StatusBadge from "@/components/ui/StatusBadge";
+import { useAppStore } from "@/stores/useAppStore";
+import { Bell, Database, Save, Shield, User } from "lucide-react";
 
 const tabs = [
-  { id: 'perfil', label: 'Perfil do Usuário', icon: User },
-  { id: 'notificacoes', label: 'Notificações', icon: Bell },
-  { id: 'seguranca', label: 'Segurança', icon: Shield },
-  { id: 'sistema', label: 'Sistema & Backup', icon: Database },
-];
+  { id: "perfil", label: "Perfil", icon: User },
+  { id: "notificacoes", label: "Notificações", icon: Bell },
+  { id: "seguranca", label: "Segurança", icon: Shield },
+  { id: "sistema", label: "Sistema", icon: Database },
+] as const;
 
-function TabPerfil() {
-  return (
-    <div className="flex flex-col gap-6">
-      <h3 className="text-lg font-bebas tracking-wider text-white">Perfil do Usuário</h3>
-      <div className="flex items-center gap-6 mb-2">
-        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-brand">
-          <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" className="w-full h-full object-cover" />
-        </div>
-        <div>
-          <button className="bg-brand/10 border border-brand/30 text-brand px-4 py-2 rounded-lg text-sm hover:bg-brand/20 transition-colors">Alterar Foto</button>
-          <p className="text-xs text-gray-500 mt-2">JPG, PNG ou GIF. Máximo 2MB.</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">Nome</label>
-          <input type="text" defaultValue="Admin Master" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">Cargo</label>
-          <input type="text" defaultValue="Administrador" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-        </div>
-        <div className="flex flex-col gap-2 col-span-2">
-          <label className="text-sm font-medium text-gray-400">E-mail</label>
-          <input type="email" defaultValue="[EMAIL_ADDRESS]" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">Telefone</label>
-          <input type="text" defaultValue="(11) 99999-0000" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">Nome da Empresa</label>
-          <input type="text" defaultValue="Imagine" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-        </div>
-      </div>
-      <div className="mt-2 flex justify-end gap-4 pt-4 border-t border-[#4E4E4E]/30">
-        <button className="px-6 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors">Cancelar</button>
-        <button className="flex items-center gap-2 bg-brand hover:bg-brandHover text-[#0f1015] font-semibold px-6 py-2 rounded-lg text-sm transition-colors">
-          <Save size={16} /> Salvar Alterações
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TabNotificacoes() {
-  const [settings, setSettings] = useState({
-    emailOrçamento: true,
-    emailProducao: true,
-    emailEstoque: false,
-    pushNovoPedido: true,
-    pushStatus: false,
-    pushFinanceiro: true,
-  });
-  const toggle = (key: keyof typeof settings) => setSettings(s => ({ ...s, [key]: !s[key] }));
-
-  const Toggle = ({ id }: { id: keyof typeof settings }) => (
-    <button onClick={() => toggle(id)} className={`relative w-12 h-6 rounded-full transition-colors ${settings[id] ? 'bg-brand' : 'bg-[#4E4E4E]'}`}>
-      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${settings[id] ? 'left-7' : 'left-1'}`}></span>
-    </button>
-  );
-
-  return (
-    <div className="flex flex-col gap-6">
-      <h3 className="text-lg font-bebas tracking-wider text-white">Notificações</h3>
-      <div className="flex flex-col gap-1">
-        <p className="text-sm font-medium text-gray-300 mb-3">E-mail</p>
-        {[
-          { id: 'emailOrçamento', label: 'Novo orçamento criado', desc: 'Receba um e-mail ao criar um orçamento.' },
-          { id: 'emailProducao', label: 'Atualização de produção', desc: 'Receba alertas de mudança de status.' },
-          { id: 'emailEstoque', label: 'Estoque crítico', desc: 'Alerta quando item atingir nível mínimo.' },
-        ].map(item => (
-          <div key={item.id} className="flex items-center justify-between py-4 border-b border-[#4E4E4E]/30">
-            <div><p className="text-sm text-gray-200">{item.label}</p><p className="text-xs text-gray-500 mt-0.5">{item.desc}</p></div>
-            <Toggle id={item.id as keyof typeof settings} />
-          </div>
-        ))}
-        <p className="text-sm font-medium text-gray-300 mt-5 mb-3">Push</p>
-        {[
-          { id: 'pushNovoPedido', label: 'Novo pedido recebido', desc: 'Notificação em tempo real.' },
-          { id: 'pushStatus', label: 'Mudança de status', desc: 'Quando um projeto mudar de etapa.' },
-          { id: 'pushFinanceiro', label: 'Alertas financeiros', desc: 'Pagamentos e receitas.' },
-        ].map(item => (
-          <div key={item.id} className="flex items-center justify-between py-4 border-b border-[#4E4E4E]/30">
-            <div><p className="text-sm text-gray-200">{item.label}</p><p className="text-xs text-gray-500 mt-0.5">{item.desc}</p></div>
-            <Toggle id={item.id as keyof typeof settings} />
-          </div>
-        ))}
-      </div>
-      <div className="flex justify-end pt-2">
-        <button className="flex items-center gap-2 bg-brand hover:bg-brandHover text-[#0f1015] font-semibold px-6 py-2 rounded-lg text-sm transition-colors">
-          <Save size={16} /> Salvar Preferências
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TabSeguranca() {
-  const [show, setShow] = useState({ atual: false, nova: false, conf: false });
-  return (
-    <div className="flex flex-col gap-6">
-      <h3 className="text-lg font-bebas tracking-wider text-white">Segurança</h3>
-      <div className="flex flex-col gap-4">
-        {[
-          { id: 'atual', label: 'Senha Atual' },
-          { id: 'nova', label: 'Nova Senha' },
-          { id: 'conf', label: 'Confirmar Nova Senha' },
-        ].map(f => (
-          <div key={f.id} className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-400">{f.label}</label>
-            <div className="relative">
-              <input type={show[f.id as keyof typeof show] ? 'text' : 'password'} placeholder="••••••••" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg pl-4 pr-12 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-              <button onClick={() => setShow(s => ({ ...s, [f.id]: !s[f.id as keyof typeof show] }))} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
-                {show[f.id as keyof typeof show] ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="flex justify-between items-center pt-4 border-t border-[#4E4E4E]/30 mt-2">
-          <button className="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm transition-colors">
-            <Trash2 size={16} /> Encerrar todas as sessões
-          </button>
-          <button className="flex items-center gap-2 bg-brand hover:bg-brandHover text-[#0f1015] font-semibold px-6 py-2 rounded-lg text-sm transition-colors">
-            <Save size={16} /> Alterar Senha
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TabSistema() {
-  return (
-    <div className="flex flex-col gap-6">
-      <h3 className="text-lg font-bebas tracking-wider text-white">Sistema & Backup</h3>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">Nome da Empresa</label>
-          <input type="text" defaultValue="Imagine" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">E-mail de Contato</label>
-          <input type="email" defaultValue="imaginehub.oficiaç@gmail.com" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-400">Fuso Horário</label>
-          <select className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-gray-300 appearance-none focus:outline-none focus:border-brand">
-            <option>Horário de Brasília (BRT)</option>
-            <option>PST</option>
-            <option>EST</option>
-          </select>
-        </div>
-        <div className="pt-4 border-t border-[#4E4E4E]/30">
-          <p className="text-sm font-medium text-gray-300 mb-3">Backup dos Dados</p>
-          <div className="flex gap-3">
-            <button className="flex-1 bg-[#0f111a] border border-[#4E4E4E] hover:border-brand text-gray-300 hover:text-white py-2.5 rounded-lg text-sm transition-colors">Exportar Backup</button>
-            <button className="flex-1 bg-[#0f111a] border border-[#4E4E4E] hover:border-brand text-gray-300 hover:text-white py-2.5 rounded-lg text-sm transition-colors">Importar Backup</button>
-          </div>
-        </div>
-        <div className="flex justify-end gap-4 pt-2">
-          <button className="px-6 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors">Cancelar</button>
-          <button className="flex items-center gap-2 bg-brand hover:bg-brandHover text-[#0f1015] font-semibold px-6 py-2 rounded-lg text-sm transition-colors">
-            <Save size={16} /> Salvar Alterações
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+type TabId = (typeof tabs)[number]["id"];
 
 export default function ConfiguracoesPage() {
-  const [activeTab, setActiveTab] = useState('perfil');
+  const setToast = useAppStore((state) => state.setToast);
+  const [activeTab, setActiveTab] = useState<TabId>("perfil");
+  const [profile, setProfile] = useState({
+    name: "Admin Master",
+    role: "Administrador",
+    email: "admin@imagine3d.com",
+    phone: "(11) 99999-0000",
+    company: "Imagine Tools",
+  });
+  const [notifications, setNotifications] = useState({
+    quoteEmail: true,
+    productionEmail: true,
+    stockEmail: false,
+    financePush: true,
+  });
 
-  const contentMap: Record<string, React.ReactNode> = {
-    perfil: <TabPerfil />,
-    notificacoes: <TabNotificacoes />,
-    seguranca: <TabSeguranca />,
-    sistema: <TabSistema />,
-  };
+  function save(message = "Configurações salvas") {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 2200);
+  }
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6 max-w-5xl">
+      <div className="flex max-w-6xl flex-col gap-6">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+          <div>
+            <h2 className="text-2xl font-semibold text-white">Configurações</h2>
+            <p className="mt-1 text-sm text-gray-400">Painel local para testar preferências, permissões e ajustes do ERP.</p>
+          </div>
+          <StatusBadge tone="green">Admin</StatusBadge>
+        </div>
 
-        <div className="flex gap-8">
-          {/* Sidebar Menu */}
-          <div className="w-64 bg-card border border-[#4E4E4E]/40 rounded-xl p-4 flex flex-col gap-2 h-fit shrink-0">
-            {tabs.map(tab => (
+        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="rounded-xl border border-white/10 bg-card p-3">
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === tab.id
-                  ? 'bg-brand/10 text-brand border border-brand/20'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent'
-                  }`}
+                className={`mb-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-brand/10 text-brand"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                }`}
               >
                 <tab.icon size={18} />
                 {tab.label}
               </button>
             ))}
-          </div>
+          </aside>
 
-          {/* Settings Content */}
-          <div className="flex-1 bg-card border border-[#4E4E4E]/40 rounded-xl p-8 min-h-[480px]">
-            {contentMap[activeTab]}
-          </div>
+          <section className="rounded-xl border border-white/10 bg-card p-6">
+            {activeTab === "perfil" && (
+              <div className="grid gap-4">
+                <h3 className="text-lg font-semibold text-white">Perfil do usuário</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Nome" value={profile.name} onChange={(value) => setProfile({ ...profile, name: value })} />
+                  <Field label="Cargo" value={profile.role} onChange={(value) => setProfile({ ...profile, role: value })} />
+                  <Field label="E-mail" value={profile.email} onChange={(value) => setProfile({ ...profile, email: value })} />
+                  <Field label="Telefone" value={profile.phone} onChange={(value) => setProfile({ ...profile, phone: value })} />
+                  <Field label="Empresa" value={profile.company} onChange={(value) => setProfile({ ...profile, company: value })} />
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={() => save("Perfil salvo")}>
+                    <Save size={16} className="mr-2" />
+                    Salvar alterações
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "notificacoes" && (
+              <div className="grid gap-4">
+                <h3 className="text-lg font-semibold text-white">Notificações</h3>
+                {Object.entries({
+                  quoteEmail: "Novo orçamento por e-mail",
+                  productionEmail: "Atualização de produção por e-mail",
+                  stockEmail: "Alerta de estoque baixo",
+                  financePush: "Alertas financeiros",
+                }).map(([key, label]) => (
+                  <div key={key} className="flex items-center justify-between rounded-lg border border-white/10 bg-[#070B1D] p-4">
+                    <span className="text-sm text-gray-300">{label}</span>
+                    <button
+                      type="button"
+                      onClick={() => setNotifications((state) => ({ ...state, [key]: !state[key as keyof typeof state] }))}
+                      className={`h-6 w-11 rounded-full p-1 transition-colors ${notifications[key as keyof typeof notifications] ? "bg-brand" : "bg-white/15"}`}
+                    >
+                      <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${notifications[key as keyof typeof notifications] ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                ))}
+                <div className="flex justify-end">
+                  <Button onClick={() => save("Preferências salvas")}>Salvar preferências</Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "seguranca" && (
+              <div className="grid gap-4">
+                <h3 className="text-lg font-semibold text-white">Segurança</h3>
+                <Field label="Senha atual" value="" onChange={() => undefined} type="password" />
+                <Field label="Nova senha" value="" onChange={() => undefined} type="password" />
+                <Field label="Confirmar senha" value="" onChange={() => undefined} type="password" />
+                <div className="flex justify-end">
+                  <Button onClick={() => save("Senha alterada localmente")}>Alterar senha</Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "sistema" && (
+              <div className="grid gap-4">
+                <h3 className="text-lg font-semibold text-white">Sistema & backup</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Nome público" value="Imagine Tools" onChange={() => undefined} />
+                  <Field label="Fuso horário" value="America/Sao_Paulo" onChange={() => undefined} />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Button variant="secondary" onClick={() => save("Backup exportado localmente")}>Exportar backup</Button>
+                  <Button variant="secondary" onClick={() => save("Importação simulada")}>Importar backup</Button>
+                </div>
+              </div>
+            )}
+          </section>
         </div>
-
       </div>
     </DashboardLayout>
+  );
+}
+
+function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm text-gray-400">{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand"
+      />
+    </label>
   );
 }

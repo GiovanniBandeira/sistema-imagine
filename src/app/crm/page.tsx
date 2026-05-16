@@ -1,170 +1,169 @@
-'use client';
-import React, { useState, useMemo } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Users, Plus, X, Search, ChevronDown } from 'lucide-react';
-import Button from '@/components/ui/Button';
+"use client";
 
-// ── Types ──────────────────────────────────────────────────────
-interface Cliente {
-  nome: string;
-  contato: string;
-  email: string;
-  pedidos: string;
-  status: 'Ativo' | 'Inativo';
-  statusColor: string;
-}
-
-// ── Initial Data ───────────────────────────────────────────────
-const INITIAL_CLIENTES: Cliente[] = [
-  { nome: 'João Silva',   contato: '(11) 99999-1111', email: 'joao@email.com',   pedidos: '12', status: 'Ativo',   statusColor: 'text-green-500' },
-  { nome: 'Maria Santos', contato: '(11) 99999-2222', email: 'maria@email.com',  pedidos: '8',  status: 'Ativo',   statusColor: 'text-green-500' },
-  { nome: 'Pedro Almeida',contato: '(11) 99999-3333', email: 'pedro@email.com',  pedidos: '5',  status: 'Ativo',   statusColor: 'text-green-500' },
-  { nome: 'Ana Costa',    contato: '(11) 98999-4444', email: 'ana@email.com',    pedidos: '7',  status: 'Inativo',statusColor: 'text-gray-400' },
-  { nome: 'Lucas Martins',contato: '(11) 99999-5555', email: 'lucas@email.com',  pedidos: '10', status: 'Ativo',   statusColor: 'text-green-500' },
-];
+import { FormEvent, useMemo, useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
+import StatusBadge from "@/components/ui/StatusBadge";
+import { ClientStatus, ClientType, useErpStore } from "@/stores/useErpStore";
+import { Plus, Search, Users } from "lucide-react";
 
 export default function CRMPage() {
-  const [clientes, setClientes] = useState<Cliente[]>(INITIAL_CLIENTES);
-  const [search, setSearch] = useState('');
+  const clients = useErpStore((state) => state.clients);
+  const addClient = useErpStore((state) => state.addClient);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<ClientType | "Todos">("Todos");
+  const [statusFilter, setStatusFilter] = useState<ClientStatus | "Todos">("Todos");
   const [showModal, setShowModal] = useState(false);
-  const [newCliente, setNewCliente] = useState<Partial<Cliente>>({});
+  const [form, setForm] = useState({
+    name: "",
+    type: "Cliente" as ClientType,
+    phone: "",
+    email: "",
+    city: "",
+    commission: 0,
+    status: "Ativo" as ClientStatus,
+  });
 
-  const filtered = useMemo(
-    () => clientes.filter(c => c.nome.toLowerCase().includes(search.toLowerCase())),
-    [search, clientes],
-  );
+  const filtered = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return clients.filter((client) => {
+      const matchesSearch =
+        !needle ||
+        client.name.toLowerCase().includes(needle) ||
+        client.email.toLowerCase().includes(needle) ||
+        client.phone.includes(needle);
+      const matchesType = typeFilter === "Todos" || client.type === typeFilter;
+      const matchesStatus = statusFilter === "Todos" || client.status === statusFilter;
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  }, [clients, search, statusFilter, typeFilter]);
 
-  const addCliente = () => {
-    if (!newCliente.nome) return;
-    const cliente: Cliente = {
-      nome: newCliente.nome,
-      contato: newCliente.contato ?? '',
-      email: newCliente.email ?? '',
-      pedidos: newCliente.pedidos ?? '0',
-      status: (newCliente.status as any) ?? 'Ativo',
-      statusColor: (newCliente.status === 'Ativo') ? 'text-green-500' : 'text-gray-400',
-    };
-    setClientes(prev => [...prev, cliente]);
-    setNewCliente({});
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!form.name.trim()) return;
+    addClient(form);
+    setForm({ name: "", type: "Cliente", phone: "", email: "", city: "", commission: 0, status: "Ativo" });
     setShowModal(false);
-  };
+  }
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6 max-w-5xl">
-        {/* Header Bar */}
-        <div className="flex items-center justify-between bg-card border border-border p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded bg-border flex items-center justify-center">
-              <Users size={20} className="text-gray-400" />
-            </div>
-            <h2 className="text-lg font-semibold text-white">Clientes</h2>
+      <div className="flex max-w-7xl flex-col gap-6">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+          <div>
+            <h2 className="text-2xl font-semibold text-white">CRM</h2>
+            <p className="mt-1 text-sm text-gray-400">Clientes, fornecedores e afiliados no mesmo fluxo.</p>
           </div>
-          <Button onClick={() => setShowModal(true)} variant="primary">
-            <Plus size={14} className="mr-1" /> Novo Cliente
+          <Button onClick={() => setShowModal(true)}>
+            <Plus size={16} className="mr-2" />
+            Novo contato
           </Button>
         </div>
 
-        {/* Table Area */}
-        <div className="bg-card border border-border rounded-xl flex flex-col mt-4">
-          {/* Search & Filter */}
-          <div className="flex items-center gap-4 p-4 border-b border-border/20">
-            <div className="relative flex-1">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Buscar cliente..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full bg-[#0a0d1a] border border-white/10 rounded-lg pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
-              />
-            </div>
-            <select
-              className="w-32 bg-[#0a0d1a] border border-white/10 rounded-lg px-2 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-brand"
-              defaultValue=""
+        <div className="grid gap-4 md:grid-cols-3">
+          {(["Cliente", "Fornecedor", "Afiliado"] as ClientType[]).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setTypeFilter(type)}
+              className="rounded-xl border border-white/10 bg-card p-5 text-left transition-colors hover:border-brand/40"
             >
-              <option value="">Todos</option>
-              <option value="ativo">Ativos</option>
-              <option value="inativo">Inativos</option>
-            </select>
-          </div>
-
-          {/* Header Row */}
-          <div className="grid grid-cols-5 px-6 py-4 border-b border-border text-xs font-semibold text-gray-400 bg-[#0a0d1a]">
-            <div>Cliente</div>
-            <div>Contato</div>
-            <div>E-mail</div>
-            <div>Pedidos</div>
-            <div className="text-right">Status</div>
-          </div>
-
-          {/* Data Rows */}
-          <div className="flex flex-col">
-            {filtered.map((row, i) => (
-              <div key={i} className="grid grid-cols-5 px-6 py-4 border-b border-border/50 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                <div className="text-sm font-medium text-gray-200">{row.nome}</div>
-                <div className="text-sm text-gray-400">{row.contato}</div>
-                <div className="text-sm text-gray-400">{row.email}</div>
-                <div className="text-sm text-gray-400">{row.pedidos}</div>
-                <div className="flex justify-end">
-                  <span className={`text-xs font-medium ${row.statusColor}`}>{row.status}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="py-4 text-center">
-            <span className="text-sm text-gray-500 hover:text-white cursor-pointer transition-colors">Ver todos</span>
-          </div>
+              <Users className="mb-4 text-brand" size={22} />
+              <span className="text-sm text-gray-400">{type}s</span>
+              <strong className="mt-2 block text-3xl text-white">{clients.filter((client) => client.type === type).length}</strong>
+            </button>
+          ))}
         </div>
 
-        {/* Modal for new client */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowModal(false)}>
-            <div className="bg-[#0B1023] border border-white/10 rounded-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Novo Cliente</h3>
-                <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white"><X size={18} /></button>
+        <section className="rounded-xl border border-white/10 bg-card">
+          <div className="flex flex-col gap-3 border-b border-white/10 p-4 lg:flex-row lg:items-center">
+            <div className="relative min-w-0 flex-1">
+              <Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar contato..."
+                className="w-full rounded-lg border border-white/10 bg-[#070B1D] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-brand"
+              />
+            </div>
+            <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as ClientType | "Todos")} className="rounded-lg border border-white/10 bg-[#070B1D] px-3 py-2.5 text-sm text-gray-200 outline-none focus:border-brand">
+              <option value="Todos">Todos os tipos</option>
+              <option value="Cliente">Clientes</option>
+              <option value="Fornecedor">Fornecedores</option>
+              <option value="Afiliado">Afiliados</option>
+            </select>
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ClientStatus | "Todos")} className="rounded-lg border border-white/10 bg-[#070B1D] px-3 py-2.5 text-sm text-gray-200 outline-none focus:border-brand">
+              <option value="Todos">Todos os status</option>
+              <option value="Ativo">Ativos</option>
+              <option value="Inativo">Inativos</option>
+            </select>
+            <Button variant="ghost" onClick={() => { setSearch(""); setTypeFilter("Todos"); setStatusFilter("Todos"); }}>
+              Limpar
+            </Button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <div className="min-w-[820px]">
+              <div className="grid grid-cols-[1.3fr_1fr_1fr_0.8fr_0.7fr_0.7fr] border-b border-white/10 bg-[#070B1D] px-6 py-3 text-xs font-semibold uppercase text-gray-500">
+                <div>Nome</div>
+                <div>Contato</div>
+                <div>Cidade</div>
+                <div>Tipo</div>
+                <div>Pedidos</div>
+                <div className="text-right">Status</div>
               </div>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Nome"
-                  value={newCliente.nome ?? ''}
-                  onChange={e => setNewCliente({ ...newCliente, nome: e.target.value })}
-                  className="w-full bg-[#0a0d1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
-                />
-                <input
-                  type="text"
-                  placeholder="Contato"
-                  value={newCliente.contato ?? ''}
-                  onChange={e => setNewCliente({ ...newCliente, contato: e.target.value })}
-                  className="w-full bg-[#0a0d1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
-                />
-                <input
-                  type="email"
-                  placeholder="E-mail"
-                  value={newCliente.email ?? ''}
-                  onChange={e => setNewCliente({ ...newCliente, email: e.target.value })}
-                  className="w-full bg-[#0a0d1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
-                />
-                <select
-                  value={newCliente.status ?? 'Ativo'}
-                  onChange={e => setNewCliente({ ...newCliente, status: e.target.value as any })}
-                  className="w-full bg-[#0a0d1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-brand"
-                >
-                  <option value="Ativo">Ativo</option>
-                  <option value="Inativo">Inativo</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <Button onClick={() => setShowModal(false)} variant="ghost">Cancelar</Button>
-                <Button onClick={addCliente} variant="primary">Salvar</Button>
-              </div>
+              {filtered.map((client) => (
+                <div key={client.id} className="grid grid-cols-[1.3fr_1fr_1fr_0.8fr_0.7fr_0.7fr] items-center border-b border-white/5 px-6 py-4 hover:bg-white/[0.03]">
+                  <div>
+                    <p className="text-sm font-medium text-white">{client.name}</p>
+                    <p className="mt-1 text-xs text-gray-500">{client.email}</p>
+                  </div>
+                  <div className="text-sm text-gray-400">{client.phone}</div>
+                  <div className="text-sm text-gray-400">{client.city || "-"}</div>
+                  <div><StatusBadge tone={client.type === "Afiliado" ? "purple" : client.type === "Fornecedor" ? "blue" : "gray"}>{client.type}</StatusBadge></div>
+                  <div className="text-sm text-gray-300">{client.orders}</div>
+                  <div className="text-right"><StatusBadge tone={client.status === "Ativo" ? "green" : "gray"}>{client.status}</StatusBadge></div>
+                </div>
+              ))}
+              {filtered.length === 0 && (
+                <p className="p-8 text-center text-sm text-gray-500">Nenhum contato encontrado.</p>
+              )}
             </div>
           </div>
-        )}
+        </section>
       </div>
+
+      <Modal
+        title="Novo contato"
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
+            <Button type="submit" form="crm-form">Salvar</Button>
+          </>
+        }
+      >
+        <form id="crm-form" onSubmit={handleSubmit} className="grid gap-3">
+          <input className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="Nome" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <select className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value as ClientType })}>
+              <option value="Cliente">Cliente</option>
+              <option value="Fornecedor">Fornecedor</option>
+              <option value="Afiliado">Afiliado</option>
+            </select>
+            <select className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ClientStatus })}>
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+          </div>
+          <input className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="Telefone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+          <input className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="E-mail" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
+          <input className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="Cidade" value={form.city} onChange={(event) => setForm({ ...form, city: event.target.value })} />
+          <input type="number" min="0" className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="Comissão (%)" value={form.commission} onChange={(event) => setForm({ ...form, commission: Number(event.target.value) })} />
+        </form>
+      </Modal>
     </DashboardLayout>
   );
 }

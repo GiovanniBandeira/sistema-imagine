@@ -1,88 +1,162 @@
-'use client';
-import React from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Search, ChevronDown, FileText } from 'lucide-react';
+"use client";
 
-const orcamentosData = [
-  { id: '#OR-2024-158', cliente: 'João Silva', data: '10/05/2024', valor: 'R$ 1.250,00', status: 'Aprovado', statusColor: 'text-green-500 bg-green-500/10 border-green-500/20' },
-  { id: '#OR-2024-157', cliente: 'Maria Santos', data: '09/05/2024', valor: 'R$ 980,50', status: 'Enviado', statusColor: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20' },
-  { id: '#OR-2024-156', cliente: 'Pedro Almeida', data: '08/05/2024', valor: 'R$ 2.350,00', status: 'Rascunho', statusColor: 'text-brand bg-brand/10 border-brand/20' },
-  { id: '#OR-2024-155', cliente: 'Ana Costa', data: '07/05/2024', valor: 'R$ 450,00', status: 'Expirado', statusColor: 'text-red-500 bg-red-500/10 border-red-500/20' },
-  { id: '#OR-2024-154', cliente: 'Lucas Martins', data: '06/05/2024', valor: 'R$ 1.780,00', status: 'Aprovado', statusColor: 'text-green-500 bg-green-500/10 border-green-500/20' },
-];
+import { FormEvent, useMemo, useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
+import StatusBadge from "@/components/ui/StatusBadge";
+import { QuoteStatus, useErpStore } from "@/stores/useErpStore";
+import { FileText, Plus, Search } from "lucide-react";
+
+const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+const statusTone: Record<QuoteStatus, "green" | "yellow" | "blue" | "red"> = {
+  Aprovado: "green",
+  Enviado: "yellow",
+  Rascunho: "blue",
+  Expirado: "red",
+};
 
 export default function OrcamentosPage() {
+  const quotes = useErpStore((state) => state.quotes);
+  const addQuote = useErpStore((state) => state.addQuote);
+  const updateQuoteStatus = useErpStore((state) => state.updateQuoteStatus);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<QuoteStatus | "Todos">("Todos");
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({
+    clientName: "",
+    seller: "Admin Master",
+    value: 0,
+    status: "Rascunho" as QuoteStatus,
+  });
+
+  const filtered = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return quotes.filter((quote) => {
+      const matchesSearch =
+        !needle ||
+        quote.id.toLowerCase().includes(needle) ||
+        quote.clientName.toLowerCase().includes(needle) ||
+        quote.seller.toLowerCase().includes(needle);
+      const matchesStatus = statusFilter === "Todos" || quote.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [quotes, search, statusFilter]);
+
+  const totalApproved = quotes
+    .filter((quote) => quote.status === "Aprovado")
+    .reduce((sum, quote) => sum + quote.value, 0);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!form.clientName.trim()) return;
+    addQuote(form);
+    setForm({ clientName: "", seller: "Admin Master", value: 0, status: "Rascunho" });
+    setShowModal(false);
+  }
+
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6 max-w-5xl">
-        
-        {/* Header Bar */}
-        <div className="flex items-center justify-between bg-card border border-border p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded bg-border flex items-center justify-center">
-              <FileText size={20} className="text-gray-400" />
+      <div className="flex max-w-7xl flex-col gap-6">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+          <div>
+            <h2 className="text-2xl font-semibold text-white">Orçamentos</h2>
+            <p className="mt-1 text-sm text-gray-400">Crie, filtre e altere o status sem recarregar a página.</p>
+          </div>
+          <Button onClick={() => setShowModal(true)}>
+            <Plus size={16} className="mr-2" />
+            Novo orçamento
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Metric label="Total aprovado" value={currency.format(totalApproved)} />
+          <Metric label="Orçamentos abertos" value={String(quotes.filter((quote) => quote.status !== "Aprovado").length)} />
+          <Metric label="Ticket médio" value={currency.format(quotes.reduce((sum, quote) => sum + quote.value, 0) / Math.max(quotes.length, 1))} />
+        </div>
+
+        <section className="rounded-xl border border-white/10 bg-card">
+          <div className="flex flex-col gap-3 border-b border-white/10 p-4 lg:flex-row lg:items-center">
+            <div className="relative min-w-0 flex-1">
+              <Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar orçamento..." className="w-full rounded-lg border border-white/10 bg-[#070B1D] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-brand" />
             </div>
-            <h2 className="text-lg font-semibold text-white">Orçamentos</h2>
-          </div>
-          <button className="bg-brand hover:bg-brandHover text-[#0f1015] font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
-            Novo Orçamento
-          </button>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Buscar orçamento..." 
-              className="w-full bg-card border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
-            />
-          </div>
-          <div className="relative w-48">
-            <select className="w-full bg-card border border-border rounded-lg pl-4 pr-10 py-2.5 text-sm text-gray-300 appearance-none focus:outline-none focus:border-brand">
-              <option>Todos os status</option>
-              <option>Aprovado</option>
-              <option>Enviado</option>
-              <option>Rascunho</option>
-              <option>Expirado</option>
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as QuoteStatus | "Todos")} className="rounded-lg border border-white/10 bg-[#070B1D] px-3 py-2.5 text-sm text-gray-200 outline-none focus:border-brand">
+              <option value="Todos">Todos os status</option>
+              <option value="Rascunho">Rascunho</option>
+              <option value="Enviado">Enviado</option>
+              <option value="Aprovado">Aprovado</option>
+              <option value="Expirado">Expirado</option>
             </select>
-            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <Button variant="ghost" onClick={() => { setSearch(""); setStatusFilter("Todos"); }}>Limpar</Button>
           </div>
-        </div>
 
-        {/* Table Area */}
-        <div className="bg-card border border-border rounded-xl flex flex-col">
-          <div className="grid grid-cols-5 px-6 py-4 border-b border-border text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            <div>Número</div>
-            <div>Cliente</div>
-            <div>Data</div>
-            <div>Valor</div>
-            <div className="text-right">Status</div>
-          </div>
-          
-          <div className="flex flex-col">
-            {orcamentosData.map((orcamento, i) => (
-              <div key={i} className="grid grid-cols-5 px-6 py-4 border-b border-border/50 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                <div className="text-sm font-medium text-gray-200">{orcamento.id}</div>
-                <div className="text-sm text-gray-400">{orcamento.cliente}</div>
-                <div className="text-sm text-gray-400">{orcamento.data}</div>
-                <div className="text-sm font-medium text-gray-300">{orcamento.valor}</div>
-                <div className="flex justify-end">
-                  <span className={`px-3 py-1 rounded text-xs font-medium border ${orcamento.statusColor}`}>
-                    {orcamento.status}
-                  </span>
-                </div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[860px]">
+              <div className="grid grid-cols-[0.9fr_1.2fr_1fr_0.8fr_0.8fr_0.9fr] border-b border-white/10 bg-[#070B1D] px-6 py-3 text-xs font-semibold uppercase text-gray-500">
+                <div>Número</div>
+                <div>Cliente</div>
+                <div>Vendedor</div>
+                <div>Data</div>
+                <div>Valor</div>
+                <div className="text-right">Status</div>
               </div>
-            ))}
+              {filtered.map((quote) => (
+                <div key={quote.id} className="grid grid-cols-[0.9fr_1.2fr_1fr_0.8fr_0.8fr_0.9fr] items-center border-b border-white/5 px-6 py-4 hover:bg-white/[0.03]">
+                  <div className="text-sm font-medium text-white">{quote.id}</div>
+                  <div className="text-sm text-gray-300">{quote.clientName}</div>
+                  <div className="text-sm text-gray-400">{quote.seller}</div>
+                  <div className="text-sm text-gray-400">{quote.createdAt}</div>
+                  <div className="text-sm font-semibold text-gray-200">{currency.format(quote.value)}</div>
+                  <div className="flex justify-end">
+                    <select value={quote.status} onChange={(event) => updateQuoteStatus(quote.id, event.target.value as QuoteStatus)} className="rounded-lg border border-white/10 bg-[#070B1D] px-3 py-2 text-xs text-gray-200 outline-none focus:border-brand">
+                      <option value="Rascunho">Rascunho</option>
+                      <option value="Enviado">Enviado</option>
+                      <option value="Aprovado">Aprovado</option>
+                      <option value="Expirado">Expirado</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+              {filtered.length === 0 && <p className="p-8 text-center text-sm text-gray-500">Nenhum orçamento encontrado.</p>}
+            </div>
           </div>
-          
-          <div className="py-4 text-center">
-            <span className="text-sm text-gray-500 hover:text-white cursor-pointer transition-colors">Ver todos</span>
-          </div>
-        </div>
-
+        </section>
       </div>
+
+      <Modal
+        title="Novo orçamento"
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
+            <Button type="submit" form="quote-form">Salvar</Button>
+          </>
+        }
+      >
+        <form id="quote-form" onSubmit={handleSubmit} className="grid gap-3">
+          <input className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="Cliente" value={form.clientName} onChange={(event) => setForm({ ...form, clientName: event.target.value })} />
+          <input className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="Vendedor" value={form.seller} onChange={(event) => setForm({ ...form, seller: event.target.value })} />
+          <input type="number" min="0" step="0.01" className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" placeholder="Valor" value={form.value} onChange={(event) => setForm({ ...form, value: Number(event.target.value) })} />
+          <select className="rounded-lg border border-white/10 bg-[#070B1D] px-4 py-2.5 text-sm text-white outline-none focus:border-brand" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as QuoteStatus })}>
+            <option value="Rascunho">Rascunho</option>
+            <option value="Enviado">Enviado</option>
+            <option value="Aprovado">Aprovado</option>
+          </select>
+        </form>
+      </Modal>
     </DashboardLayout>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-card p-5">
+      <FileText className="mb-4 text-brand" size={22} />
+      <span className="text-sm text-gray-400">{label}</span>
+      <strong className="mt-2 block text-2xl text-white">{value}</strong>
+    </div>
   );
 }

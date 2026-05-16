@@ -34,7 +34,7 @@ function TabPerfil() {
         </div>
         <div className="flex flex-col gap-2 col-span-2">
           <label className="text-sm font-medium text-gray-400">E-mail</label>
-          <input type="email" defaultValue="admin@imagine3d.com" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
+          <input type="email" defaultValue="[EMAIL_ADDRESS]" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-400">Telefone</label>
@@ -42,7 +42,7 @@ function TabPerfil() {
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-400">Nome da Empresa</label>
-          <input type="text" defaultValue="IMAGINE 3D ERP" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
+          <input type="text" defaultValue="Imagine" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
         </div>
       </div>
       <div className="mt-2 flex justify-end gap-4 pt-4 border-t border-[#4E4E4E]/30">
@@ -149,11 +149,11 @@ function TabSistema() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-400">Nome da Empresa</label>
-          <input type="text" defaultValue="IMAGINE 3D ERP" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
+          <input type="text" defaultValue="Imagine" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-400">E-mail de Contato</label>
-          <input type="email" defaultValue="admin@imagine3d.com" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
+          <input type="email" defaultValue="imaginehub.oficiaç@gmail.com" className="w-full bg-[#0f111a] border border-[#4E4E4E] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-400">Fuso Horário</label>
@@ -202,11 +202,10 @@ export default function ConfiguracoesPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${
-                  activeTab === tab.id
-                    ? 'bg-brand/10 text-brand border border-brand/20'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === tab.id
+                  ? 'bg-brand/10 text-brand border border-brand/20'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent'
+                  }`}
               >
                 <tab.icon size={18} />
                 {tab.label}

@@ -1,57 +1,65 @@
-'use client';
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  Printer, 
-  Package, 
-  Cuboid, 
-  BadgeDollarSign, 
-  BarChart2, 
-  Settings 
-} from 'lucide-react';
+"use client";
 
-const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/crm', label: 'CRM', icon: Users },
-  { href: '/orcamentos', label: 'Orçamentos', icon: FileText },
-  { href: '/producao', label: 'Produção', icon: Printer },
-  { href: '/estoque', label: 'Estoque', icon: Package },
-  { href: '/catalogo', label: 'Catálogo 3D', icon: Cuboid },
-  { href: '/financeiro', label: 'Financeiro', icon: BadgeDollarSign },
-  { href: '/relatorios', label: 'Relatórios', icon: BarChart2 },
-  { href: '/configuracoes', label: 'Configurações', icon: Settings },
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Printer,
+  Package,
+  Cuboid,
+  BadgeDollarSign,
+  BarChart2,
+  Settings,
+} from "lucide-react";
+
+const links = [
+  { label: "Dashboard",      href: "/dashboard",      icon: LayoutDashboard },
+  { label: "CRM",            href: "/crm",            icon: Users },
+  { label: "Orçamentos",     href: "/orcamentos",     icon: FileText },
+  { label: "Produção",       href: "/producao",        icon: Printer },
+  { label: "Estoque",        href: "/estoque",         icon: Package },
+  { label: "Catálogo 3D",    href: "/catalogo",        icon: Cuboid },
+  { label: "Financeiro",     href: "/financeiro",      icon: BadgeDollarSign },
+  { label: "Relatórios",     href: "/relatorios",      icon: BarChart2 },
+  { label: "Configurações",  href: "/configuracoes",   icon: Settings },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-[#161720] border-r border-[#272733] flex flex-col">
-      <div className="flex items-center justify-center px-6 h-20 border-b border-[#272733]/50">
-        <img src="/Images/LogoVerde3.0.svg" alt="Imagine 3D ERP Logo" className="h-8 object-contain" />
+    <aside className="w-[260px] min-w-[260px] border-r border-white/10 bg-[#070B1D] flex flex-col">
+      <div className="flex items-center justify-center px-6 h-20 border-b border-white/5">
+        <img
+          src="/Images/LogoVerde3.0.svg"
+          alt="Imagine 3D"
+          className="h-8 object-contain"
+        />
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href || (pathname === '/' && item.href === '/dashboard');
+      <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
+        {links.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (pathname === "/" && item.href === "/dashboard");
+
           return (
-            <Link key={item.href} href={item.href}>
-              <div
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
-                  isActive 
-                    ? 'bg-brand text-[#0f1015]' 
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-                }`}
-              >
-                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                <span className={`font-medium ${isActive ? 'text-white' : ''}`}>
-                  {item.label}
-                </span>
-              </div>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`
+                flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all
+                ${
+                  isActive
+                    ? "bg-green-500 text-black"
+                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                }
+              `}
+            >
+              <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              {item.label}
             </Link>
           );
         })}
